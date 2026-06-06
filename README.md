@@ -2,7 +2,7 @@
 
 Completed Coursera Streamlit project upgraded into a professional, risk-aware machine learning product demo.
 
-This repository starts from the classic binary mushroom classification lab and refactors it into a senior-level portfolio project with clean project structure, relative data paths, model comparison, decision-threshold policy, safety-oriented metrics, scoring workflow, and governance documentation.
+This repository starts from the classic binary mushroom classification lab and refactors it into a portfolio-ready project while preserving the original learning experience: LabelEncoder preprocessing, classifier selection, hyperparameter controls, metric plot choices, raw data display, encoded data display, and model evaluation visuals.
 
 > Educational project only. Do not use this app for real mushroom consumption or safety decisions.
 
@@ -13,6 +13,9 @@ The original lab proves that a classifier can separate edible and poisonous mush
 ## What Was Upgraded
 
 - Replaced the hard-coded Coursera file path with repo-relative data loading.
+- Preserved the original course-style `LabelEncoder` workflow and made the target mapping explicit: edible = 0, poisonous = 1.
+- Restored the Streamlit model selector for SVM, Logistic Regression, and Random Forest.
+- Restored model hyperparameter controls, selected metric plots, raw data view, encoded data view, and LabelEncoder mapping view.
 - Added a reusable `src/` package for data loading, preprocessing, modeling, evaluation, and visuals.
 - Added multiple candidate models: Logistic Regression, Random Forest, Gradient Boosting, and SVM.
 - Added risk-aware model comparison using poisonous recall, false-safe count, false-safe rate, ROC AUC, average precision, and balanced accuracy.
@@ -22,7 +25,7 @@ The original lab proves that a classifier can separate edible and poisonous mush
 
 ## App Pages
 
-- `app.py` - executive overview and model leaderboard.
+- `app.py` - course-compatible interactive classifier workbench with model choices, hyperparameters, LabelEncoder mappings, metrics, and visuals.
 - `pages/1_Data_Quality.py` - schema, missing values, duplicates, and feature distributions.
 - `pages/2_Model_Lab.py` - model comparison, confusion matrix, ROC, and precision-recall curves.
 - `pages/3_Safety_Scoring.py` - manual scoring and batch scoring preview.

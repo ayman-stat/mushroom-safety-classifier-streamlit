@@ -33,7 +33,7 @@ Poisonous is the positive class because missing a poisonous mushroom is the high
 - Gradient Boosting
 - Support Vector Machine
 
-All candidates are trained through scikit-learn pipelines with one-hot encoding for categorical features.
+The home Streamlit workbench uses the original course-compatible `LabelEncoder` approach and exposes model controls for SVM, Logistic Regression, and Random Forest. The advanced model lab pages also include scikit-learn pipeline examples with one-hot encoding.
 
 ## Primary Metrics
 

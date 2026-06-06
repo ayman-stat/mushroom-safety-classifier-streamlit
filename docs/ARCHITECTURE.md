@@ -10,13 +10,28 @@ Turn a beginner Streamlit binary-classification lab into a clean ML decision-sup
 Raw mushroom CSV
         |
         v
+Course-compatible LabelEncoder workbench
+        |
+        v
+Interactive classifier selection and hyperparameter controls
+        |
+        v
+Confusion matrix, ROC curve, precision-recall curve, and model metrics
+```
+
+The project also keeps separate advanced pages for data quality, model comparison, scoring, and governance:
+
+```text
+Raw mushroom CSV
+        |
+        v
 Data quality profile
         |
         v
 Categorical feature preparation
         |
         v
-scikit-learn pipelines with one-hot encoding
+scikit-learn pipeline examples with one-hot encoding
         |
         v
 Candidate model comparison
@@ -30,6 +45,7 @@ Manual and batch scoring views
 
 ## Design Choices
 
+- The home app preserves the original Coursera learning pattern with `LabelEncoder`, model choices, hyperparameter controls, and selected plots.
 - The project uses scikit-learn `Pipeline` and `ColumnTransformer` so preprocessing and model inference stay together.
 - The target is mapped as poisonous = positive class because false-safe decisions are the main risk.
 - The Streamlit interface exposes threshold tuning so model performance can be discussed as an operating policy, not a fixed score.
