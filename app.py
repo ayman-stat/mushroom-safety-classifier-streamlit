@@ -88,11 +88,25 @@ def get_scores(model, x_test: pd.DataFrame):
     return model.decision_function(x_test)
 
 
-def plot_selected_metrics(metrics: list[str], model, x_test, y_test, y_pred, y_score):
+def render_compact_figure(fig):
+    fig.tight_layout(pad=1.0)
+    try:
+        st.pyplot(fig, use_container_width=True)
+    except TypeError:
+        st.pyplot(fig)
+    plt.close(fig)
+
+
+def plot_selected_metrics(metrics: list[str], y_test, y_pred, y_score):
+    if not metrics:
+        return
+
+    st.subheader("Visual Diagnostics")
+    st.caption("Compact plots for the selected model and current decision threshold.")
+    figures = []
+
     if "Confusion Matrix" in metrics:
-        st.subheader("Confusion Matrix")
-        st.caption("Rows are actual classes; columns are predicted classes. LabelEncoder maps edible=0 and poisonous=1.")
-        fig, ax = plt.subplots(figsize=(6, 4))
+        fig, ax = plt.subplots(figsize=(4.4, 3.2), dpi=120)
         ConfusionMatrixDisplay.from_predictions(
             y_test,
             y_pred,
@@ -102,22 +116,33 @@ def plot_selected_metrics(metrics: list[str], model, x_test, y_test, y_pred, y_s
             ax=ax,
             colorbar=False,
         )
-        st.pyplot(fig)
-        plt.close(fig)
+        ax.set_title("Confusion Matrix", fontsize=10)
+        figures.append(
+            (
+                "Confusion Matrix",
+                "Rows are actual classes; columns are predicted classes.",
+                fig,
+            )
+        )
 
     if "ROC Curve" in metrics:
-        st.subheader("ROC Curve")
-        fig, ax = plt.subplots(figsize=(6, 4))
+        fig, ax = plt.subplots(figsize=(4.4, 3.2), dpi=120)
         RocCurveDisplay.from_predictions(y_test, y_score, pos_label=POSITIVE_CLASS, ax=ax)
-        st.pyplot(fig)
-        plt.close(fig)
+        ax.set_title("ROC Curve", fontsize=10)
+        figures.append(("ROC Curve", "Ranking performance across classification thresholds.", fig))
 
     if "Precision-Recall Curve" in metrics:
-        st.subheader("Precision-Recall Curve")
-        fig, ax = plt.subplots(figsize=(6, 4))
+        fig, ax = plt.subplots(figsize=(4.4, 3.2), dpi=120)
         PrecisionRecallDisplay.from_predictions(y_test, y_score, pos_label=POSITIVE_CLASS, ax=ax)
-        st.pyplot(fig)
-        plt.close(fig)
+        ax.set_title("Precision-Recall Curve", fontsize=10)
+        figures.append(("Precision-Recall Curve", "Precision and recall trade-off for the poisonous class.", fig))
+
+    grid = st.columns(2 if len(figures) > 1 else 1)
+    for index, (title, caption, fig) in enumerate(figures):
+        with grid[index % len(grid)]:
+            st.markdown(f"**{title}**")
+            st.caption(caption)
+            render_compact_figure(fig)
 
 
 st.title("Mushroom Binary Classification Web App")
@@ -232,7 +257,7 @@ with st.expander("Why ROC AUC can be near 1.000 while recall is lower"):
         "So a model can have excellent ranking metrics while still missing some poisonous records at the current threshold."
     )
 
-plot_selected_metrics(selected_metrics, model, bundle.x_test, bundle.y_test, y_pred, y_score)
+plot_selected_metrics(selected_metrics, bundle.y_test, y_pred, y_score)
 
 if classifier == "Random Forest":
     st.subheader("Random Forest Feature Importance")
@@ -244,9 +269,18 @@ if classifier == "Random Forest":
             }
         )
         .sort_values("importance", ascending=False)
-        .head(15)
+        .head(10)
     )
-    st.bar_chart(importance.set_index("feature"))
+    left, right = st.columns([1.2, 1])
+    with left:
+        fig, ax = plt.subplots(figsize=(5.2, 3.4), dpi=120)
+        ax.barh(importance["feature"][::-1], importance["importance"][::-1], color="#00e88f")
+        ax.set_xlabel("Importance")
+        ax.set_ylabel("")
+        ax.set_title("Top Feature Importances", fontsize=10)
+        render_compact_figure(fig)
+    with right:
+        st.dataframe(importance, use_container_width=True, hide_index=True)
 
 st.subheader("Model Parameters")
 st.json(model.get_params())
