@@ -16,6 +16,7 @@ The original lab proves that a classifier can separate edible and poisonous mush
 - Preserved the original course-style `LabelEncoder` workflow and made the target mapping explicit: edible = 0, poisonous = 1.
 - Restored the Streamlit model selector for SVM, Logistic Regression, and Random Forest.
 - Restored model hyperparameter controls, selected metric plots, raw data view, encoded data view, and LabelEncoder mapping view.
+- Added a poisonous-class decision threshold so accuracy, precision, recall, F1, and the confusion matrix are clearly tied to the selected operating threshold.
 - Added a reusable `src/` package for data loading, preprocessing, modeling, evaluation, and visuals.
 - Added multiple candidate models: Logistic Regression, Random Forest, Gradient Boosting, and SVM.
 - Added risk-aware model comparison using poisonous recall, false-safe count, false-safe rate, ROC AUC, average precision, and balanced accuracy.
@@ -87,3 +88,7 @@ The dataset is a public categorical mushroom classification dataset included for
 - `p` = poisonous
 
 The model maps poisonous records to the positive class because that is the safety-critical outcome.
+
+## Metric Interpretation
+
+Accuracy, precision, recall, F1, and the confusion matrix are threshold-based metrics. ROC AUC and Average Precision are ranking metrics calculated from model scores across thresholds. It is therefore possible for ROC AUC and Average Precision to round to `1.000` while recall is lower at the selected decision threshold.

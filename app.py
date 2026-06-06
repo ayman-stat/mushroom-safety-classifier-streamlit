@@ -11,6 +11,7 @@ from sklearn.metrics import (
     RocCurveDisplay,
     accuracy_score,
     average_precision_score,
+    confusion_matrix,
     f1_score,
     precision_score,
     recall_score,
@@ -143,6 +144,14 @@ with st.sidebar:
         ("Confusion Matrix", "ROC Curve", "Precision-Recall Curve"),
         default=("Confusion Matrix", "ROC Curve", "Precision-Recall Curve"),
     )
+    decision_threshold = st.slider(
+        "Poisonous decision threshold",
+        0.05,
+        0.95,
+        value=0.50,
+        step=0.05,
+        help="Threshold applied to the poisonous-class probability for accuracy, precision, recall, F1, and confusion matrix.",
+    )
 
     show_raw_data = st.checkbox("Show raw data", value=False)
     show_encoded_data = st.checkbox("Show label-encoded data", value=False)
@@ -186,8 +195,8 @@ if not run_model:
 
 with st.spinner(f"Training {classifier}..."):
     model.fit(bundle.x_train, bundle.y_train)
-    y_pred = model.predict(bundle.x_test)
     y_score = get_scores(model, bundle.x_test)
+    y_pred = (y_score >= decision_threshold).astype(int)
 
 accuracy = accuracy_score(bundle.y_test, y_pred)
 precision = precision_score(bundle.y_test, y_pred, pos_label=POSITIVE_CLASS, zero_division=0)
@@ -195,6 +204,11 @@ recall = recall_score(bundle.y_test, y_pred, pos_label=POSITIVE_CLASS, zero_divi
 f1 = f1_score(bundle.y_test, y_pred, pos_label=POSITIVE_CLASS, zero_division=0)
 roc_auc = roc_auc_score(bundle.y_test, y_score)
 average_precision = average_precision_score(bundle.y_test, y_score)
+true_edible, false_alarm, false_safe, true_poisonous = confusion_matrix(
+    bundle.y_test,
+    y_pred,
+    labels=[0, 1],
+).ravel()
 
 st.subheader(f"{classifier} Results")
 metric_cols = st.columns(6)
@@ -204,6 +218,19 @@ metric_cols[2].metric("Recall", f"{recall:.3f}")
 metric_cols[3].metric("F1", f"{f1:.3f}")
 metric_cols[4].metric("ROC AUC", f"{roc_auc:.3f}")
 metric_cols[5].metric("Avg Precision", f"{average_precision:.3f}")
+
+confusion_cols = st.columns(4)
+confusion_cols[0].metric("True edible", f"{true_edible:,}")
+confusion_cols[1].metric("False alarms", f"{false_alarm:,}")
+confusion_cols[2].metric("False-safe", f"{false_safe:,}")
+confusion_cols[3].metric("True poisonous", f"{true_poisonous:,}")
+
+with st.expander("Why ROC AUC can be near 1.000 while recall is lower"):
+    st.write(
+        "Accuracy, precision, recall, F1, and the confusion matrix depend on the selected decision threshold. "
+        "ROC AUC and Average Precision evaluate how well the model ranks poisonous records above edible records across many thresholds. "
+        "So a model can have excellent ranking metrics while still missing some poisonous records at the current threshold."
+    )
 
 plot_selected_metrics(selected_metrics, model, bundle.x_test, bundle.y_test, y_pred, y_score)
 
