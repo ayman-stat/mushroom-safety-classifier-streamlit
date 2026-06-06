@@ -2,11 +2,11 @@
 
 Completed Coursera Streamlit project upgraded into a professional, risk-aware machine learning product demo.
 
-[![Streamlit](https://img.shields.io/badge/Streamlit-app-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io)
+[![Live demo](https://img.shields.io/badge/Live%20demo-Streamlit%20Cloud-FF4B4B?logo=streamlit&logoColor=white)](https://ayman-stat-mushroom-safety-classifier-streamlit-app-jeedwt.streamlit.app/)
 [![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)](https://www.python.org)
 [![scikit-learn](https://img.shields.io/badge/scikit--learn-pipelines-F7931E?logo=scikitlearn&logoColor=white)](https://scikit-learn.org)
 
-> **Live demo:** _add your Streamlit Cloud URL here after deployment_ (e.g. `https://mushroom-safety-classifier.streamlit.app`).
+> **▶️ Live demo:** **https://ayman-stat-mushroom-safety-classifier-streamlit-app-jeedwt.streamlit.app/**
 
 The interface uses a unified dark product theme (branded hero headers, styled metric cards, and a
 consistent interactive Plotly chart template across every page) so the project reads as a finished
