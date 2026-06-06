@@ -4,12 +4,24 @@ import streamlit as st
 
 from src.data import build_dataset_bundle
 from src.modeling import leaderboard, train_and_evaluate
-from src.visuals import confusion_heatmap, metric_table, precision_recall_chart, roc_chart
+from src.theme import footer, page_setup
+from src.visuals import (
+    confusion_heatmap,
+    leaderboard_chart,
+    metric_table,
+    precision_recall_chart,
+    roc_chart,
+)
 
 
-st.set_page_config(page_title="Model Lab", layout="wide")
-st.title("Model Lab")
-st.caption("Compare candidate classifiers using safety-oriented metrics, not accuracy alone.")
+st.set_page_config(page_title="Model Lab", page_icon="🍄", layout="wide")
+page_setup(
+    page_title="Model Lab",
+    title="🧪 Model Lab",
+    subtitle="Compare candidate classifiers using safety-oriented metrics — false-safe count and "
+    "poisonous recall — not accuracy alone.",
+    pills=[("Leaderboard", ""), ("ROC / PR curves", "alt"), ("Threshold policy", "")],
+)
 
 
 @st.cache_data(show_spinner=False)
@@ -37,7 +49,9 @@ results = get_results(threshold)
 board = leaderboard(results)
 
 st.subheader("Leaderboard")
+st.caption("Ranked by fewest false-safe predictions, then highest poisonous recall.")
 st.dataframe(metric_table(board), use_container_width=True, hide_index=True)
+st.plotly_chart(leaderboard_chart(board), use_container_width=True)
 
 model_names = [result.name for result in results]
 selected_name = st.selectbox("Inspect model", model_names)
@@ -55,7 +69,9 @@ with left:
     st.plotly_chart(roc_chart(data.y_test, selected.y_probability), use_container_width=True)
 with right:
     st.plotly_chart(precision_recall_chart(data.y_test, selected.y_probability), use_container_width=True)
-    st.write(
+    st.info(
         "The selected model is evaluated against a configurable decision threshold. "
         "For safety-sensitive classification, the threshold should be reviewed with domain experts and operational constraints."
     )
+
+footer()

@@ -5,11 +5,17 @@ import streamlit as st
 from src.config import FEATURE_LABELS
 from src.data import build_dataset_bundle
 from src.modeling import score_records, train_and_evaluate
+from src.theme import footer, page_setup
 
 
-st.set_page_config(page_title="Safety Scoring", layout="wide")
-st.title("Safety Scoring Workbench")
-st.caption("Score records and review how threshold policy changes the decision output.")
+st.set_page_config(page_title="Safety Scoring", page_icon="🍄", layout="wide")
+page_setup(
+    page_title="Safety Scoring",
+    title="🛡️ Safety Scoring Workbench",
+    subtitle="Score a single record by hand or a batch from the test set, and watch how the "
+    "threshold policy changes each decision.",
+    pills=[("Manual scoring", ""), ("Batch preview", "alt")],
+)
 
 
 @st.cache_data(show_spinner=False)
@@ -46,14 +52,23 @@ if submitted:
         record.loc[record.index[0], feature] = value
     scored = score_records(best.pipeline, record, threshold)
     probability = float(scored["poisonous_probability"].iloc[0])
-    st.metric("Poisonous probability", f"{probability:.1%}")
-    st.write(scored[["poisonous_probability", "decision"]])
+    flagged = probability >= threshold
+
+    result_cols = st.columns([1, 2])
+    result_cols[0].metric("Poisonous probability", f"{probability:.1%}")
+    with result_cols[1]:
+        st.write("")
+        if flagged:
+            st.error(f"⚠️ Flagged: review as poisonous risk (≥ {threshold:.0%} threshold).")
+        else:
+            st.success(f"Lower-risk edible prediction (< {threshold:.0%} threshold).")
 
 st.subheader("Batch Scoring Preview")
 sample_size = st.slider("Rows to score from test sample", 10, 200, 50, 10)
 scored_sample = score_records(best.pipeline, data.x_test.head(sample_size), threshold)
-st.dataframe(scored_sample, use_container_width=True, hide_index=True)
+st.dataframe(scored_sample, use_container_width=True, hide_index=True, height=420)
 
 st.info(
     "In a production setting, this scoring layer would write outputs to an audited table with model version, threshold version, score timestamp, and reviewer action."
 )
+footer()

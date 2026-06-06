@@ -2,10 +2,17 @@ from __future__ import annotations
 
 import streamlit as st
 
+from src.theme import footer, page_setup
 
-st.set_page_config(page_title="Governance", layout="wide")
-st.title("Governance & Rollout Notes")
-st.caption("How the demo would be controlled before any real-world decision use.")
+
+st.set_page_config(page_title="Governance", page_icon="🍄", layout="wide")
+page_setup(
+    page_title="Governance",
+    title="📋 Governance & Rollout Notes",
+    subtitle="How this demo would be controlled, monitored, and extended before any real-world "
+    "decision use.",
+    pills=[("Decision controls", ""), ("Limits", "alt"), ("Roadmap", "")],
+)
 
 st.subheader("Decision Controls")
 st.markdown(
@@ -44,3 +51,5 @@ st.markdown(
 - Deploy a public Streamlit Cloud demo after repository publication.
 """
 )
+
+footer()

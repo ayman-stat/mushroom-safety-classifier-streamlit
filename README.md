@@ -2,6 +2,16 @@
 
 Completed Coursera Streamlit project upgraded into a professional, risk-aware machine learning product demo.
 
+[![Streamlit](https://img.shields.io/badge/Streamlit-app-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io)
+[![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)](https://www.python.org)
+[![scikit-learn](https://img.shields.io/badge/scikit--learn-pipelines-F7931E?logo=scikitlearn&logoColor=white)](https://scikit-learn.org)
+
+> **Live demo:** _add your Streamlit Cloud URL here after deployment_ (e.g. `https://mushroom-safety-classifier.streamlit.app`).
+
+The interface uses a unified dark product theme (branded hero headers, styled metric cards, and a
+consistent interactive Plotly chart template across every page) so the project reads as a finished
+product rather than a notebook export.
+
 This repository starts from the classic binary mushroom classification lab and refactors it into a portfolio-ready project while preserving the original learning experience: LabelEncoder preprocessing, classifier selection, hyperparameter controls, metric plot choices, raw data display, encoded data display, and model evaluation visuals.
 
 > Educational project only. Do not use this app for real mushroom consumption or safety decisions.
@@ -35,10 +45,10 @@ The original lab proves that a classifier can separate edible and poisonous mush
 ## Tech Stack
 
 - Python
-- Streamlit
+- Streamlit (multipage app + custom theme)
 - pandas and NumPy
 - scikit-learn pipelines
-- Plotly
+- Plotly (shared interactive chart theme)
 - pytest
 
 ## Repository Structure
@@ -70,6 +80,14 @@ streamlit run app.py
 ```bash
 pytest
 ```
+
+## Deploy to Streamlit Community Cloud
+
+1. Push this repository to GitHub (already configured as `origin`).
+2. Go to [share.streamlit.io](https://share.streamlit.io) and sign in with GitHub.
+3. Click **New app**, choose this repo, branch `main`, and main file `app.py`.
+4. Deploy. Streamlit installs `requirements.txt` and pins Python via `runtime.txt` (3.11).
+5. Copy the public URL into the **Live demo** badge at the top of this README.
 
 ## Portfolio Positioning
 

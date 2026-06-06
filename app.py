@@ -1,14 +1,10 @@
 from __future__ import annotations
 
-import matplotlib.pyplot as plt
 import pandas as pd
 import streamlit as st
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
-    ConfusionMatrixDisplay,
-    PrecisionRecallDisplay,
-    RocCurveDisplay,
     accuracy_score,
     average_precision_score,
     confusion_matrix,
@@ -21,6 +17,13 @@ from sklearn.svm import SVC
 
 from src.config import TARGET_COLUMN
 from src.data import build_label_encoded_bundle
+from src.theme import footer, page_setup
+from src.visuals import (
+    confusion_heatmap,
+    feature_importance_chart,
+    precision_recall_chart,
+    roc_chart,
+)
 
 
 CLASS_NAMES = ["edible", "poisonous"]
@@ -28,9 +31,21 @@ POSITIVE_CLASS = 1
 
 
 st.set_page_config(
-    page_title="Mushroom Classification Lab",
-    page_icon="",
+    page_title="Mushroom Safety Classifier",
+    page_icon="🍄",
     layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+page_setup(
+    page_title="Mushroom Safety Classifier",
+    title="🍄 Mushroom Safety Classifier",
+    subtitle=(
+        "A course-style binary classifier upgraded into a risk-aware decision tool. Train SVM, "
+        "Logistic Regression, or Random Forest, then tune the poisonous decision threshold and read "
+        "the metrics that actually matter for safety."
+    ),
+    pills=[("Interactive classifier", ""), ("Risk-aware metrics", "alt"), ("scikit-learn", "")],
 )
 
 
@@ -88,65 +103,43 @@ def get_scores(model, x_test: pd.DataFrame):
     return model.decision_function(x_test)
 
 
-def render_compact_figure(fig):
-    fig.tight_layout(pad=1.0)
-    try:
-        st.pyplot(fig, use_container_width=True)
-    except TypeError:
-        st.pyplot(fig)
-    plt.close(fig)
-
-
 def plot_selected_metrics(metrics: list[str], y_test, y_pred, y_score):
     if not metrics:
         return
 
     st.subheader("Visual Diagnostics")
-    st.caption("Compact plots for the selected model and current decision threshold.")
-    figures = []
+    st.caption("Interactive plots for the selected model and current decision threshold.")
 
+    figures = []
     if "Confusion Matrix" in metrics:
-        fig, ax = plt.subplots(figsize=(4.4, 3.2), dpi=120)
-        ConfusionMatrixDisplay.from_predictions(
-            y_test,
-            y_pred,
-            labels=[0, 1],
-            display_labels=CLASS_NAMES,
-            cmap="Greens",
-            ax=ax,
-            colorbar=False,
-        )
-        ax.set_title("Confusion Matrix", fontsize=10)
+        matrix = confusion_matrix(y_test, y_pred, labels=[0, 1])
         figures.append(
             (
-                "Confusion Matrix",
+                confusion_heatmap(matrix),
                 "Rows are actual classes; columns are predicted classes.",
-                fig,
+            )
+        )
+    if "ROC Curve" in metrics:
+        figures.append(
+            (
+                roc_chart(y_test, y_score),
+                "Ranking performance across classification thresholds.",
+            )
+        )
+    if "Precision-Recall Curve" in metrics:
+        figures.append(
+            (
+                precision_recall_chart(y_test, y_score),
+                "Precision and recall trade-off for the poisonous class.",
             )
         )
 
-    if "ROC Curve" in metrics:
-        fig, ax = plt.subplots(figsize=(4.4, 3.2), dpi=120)
-        RocCurveDisplay.from_predictions(y_test, y_score, pos_label=POSITIVE_CLASS, ax=ax)
-        ax.set_title("ROC Curve", fontsize=10)
-        figures.append(("ROC Curve", "Ranking performance across classification thresholds.", fig))
-
-    if "Precision-Recall Curve" in metrics:
-        fig, ax = plt.subplots(figsize=(4.4, 3.2), dpi=120)
-        PrecisionRecallDisplay.from_predictions(y_test, y_score, pos_label=POSITIVE_CLASS, ax=ax)
-        ax.set_title("Precision-Recall Curve", fontsize=10)
-        figures.append(("Precision-Recall Curve", "Precision and recall trade-off for the poisonous class.", fig))
-
     grid = st.columns(2 if len(figures) > 1 else 1)
-    for index, (title, caption, fig) in enumerate(figures):
+    for index, (fig, caption) in enumerate(figures):
         with grid[index % len(grid)]:
-            st.markdown(f"**{title}**")
+            st.plotly_chart(fig, use_container_width=True)
             st.caption(caption)
-            render_compact_figure(fig)
 
-
-st.title("Mushroom Binary Classification Web App")
-st.caption("Course-compatible Streamlit classifier with professional cleanup, relative paths, and correct metric handling.")
 
 with st.sidebar:
     st.title("Classifier Controls")
@@ -181,7 +174,7 @@ with st.sidebar:
     show_raw_data = st.checkbox("Show raw data", value=False)
     show_encoded_data = st.checkbox("Show label-encoded data", value=False)
     show_mappings = st.checkbox("Show LabelEncoder mappings", value=True)
-    run_model = st.button("Classify", type="primary")
+    run_model = st.button("Classify", type="primary", use_container_width=True)
 
 bundle = get_encoded_data(test_size, int(random_state), stratify)
 
@@ -215,7 +208,8 @@ if show_encoded_data:
     st.dataframe(bundle.encoded, use_container_width=True)
 
 if not run_model:
-    st.warning("Choose a classifier and click Classify to train the model and show metrics.")
+    st.warning("Choose a classifier and click **Classify** to train the model and show metrics.")
+    footer()
     st.stop()
 
 with st.spinner(f"Training {classifier}..."):
@@ -236,6 +230,7 @@ true_edible, false_alarm, false_safe, true_poisonous = confusion_matrix(
 ).ravel()
 
 st.subheader(f"{classifier} Results")
+st.caption(f"Metrics below use a poisonous decision threshold of {decision_threshold:.2f}.")
 metric_cols = st.columns(6)
 metric_cols[0].metric("Accuracy", f"{accuracy:.3f}")
 metric_cols[1].metric("Precision", f"{precision:.3f}")
@@ -247,7 +242,7 @@ metric_cols[5].metric("Avg Precision", f"{average_precision:.3f}")
 confusion_cols = st.columns(4)
 confusion_cols[0].metric("True edible", f"{true_edible:,}")
 confusion_cols[1].metric("False alarms", f"{false_alarm:,}")
-confusion_cols[2].metric("False-safe", f"{false_safe:,}")
+confusion_cols[2].metric("False-safe ⚠️", f"{false_safe:,}")
 confusion_cols[3].metric("True poisonous", f"{true_poisonous:,}")
 
 with st.expander("Why ROC AUC can be near 1.000 while recall is lower"):
@@ -271,18 +266,13 @@ if classifier == "Random Forest":
         .sort_values("importance", ascending=False)
         .head(10)
     )
-    left, right = st.columns([1.2, 1])
+    left, right = st.columns([1.4, 1])
     with left:
-        fig, ax = plt.subplots(figsize=(5.2, 3.4), dpi=120)
-        ax.barh(importance["feature"][::-1], importance["importance"][::-1], color="#00e88f")
-        ax.set_xlabel("Importance")
-        ax.set_ylabel("")
-        ax.set_title("Top Feature Importances", fontsize=10)
-        render_compact_figure(fig)
+        st.plotly_chart(feature_importance_chart(importance), use_container_width=True)
     with right:
         st.dataframe(importance, use_container_width=True, hide_index=True)
 
-st.subheader("Model Parameters")
-st.json(model.get_params())
+with st.expander("Model parameters"):
+    st.json(model.get_params())
 
-st.warning("Educational project only. Do not use this app for real mushroom consumption or safety decisions.")
+footer()
